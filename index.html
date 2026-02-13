@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P_U</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00E676;
+            --bg: #0b0b0b;
+            --surface: #161616;
+            --text: #ffffff;
+            --text-mute: #888;
+            --border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        nav {
+            padding: 1.2rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(11, 11, 11, 0.95);
+            border-bottom: var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(15px);
+        }
+        .logo {
+            font-weight: 800;
+            font-size: 1.4rem;
+            color: var(--primary);
+            letter-spacing: -1px;
+        }
+        main {
+            padding: 2rem 5%;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        section {
+            display: none;
+        }
+        section.active {
+            display: block;
+        }
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 3rem;
+        }
+        .card {
+            background: var(--surface);
+            padding: 3rem 2rem;
+            border-radius: 20px;
+            border: var(--border);
+            cursor: pointer;
+            text-align: center;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .active .card {
+            animation: floatIn 0.6s forwards;
+        }
+        .active .card:nth-child(1) { animation-delay: 0.1s; }
+        .active .card:nth-child(2) { animation-delay: 0.2s; }
+        .active .card:nth-child(3) { animation-delay: 0.3s; }
+        @keyframes floatIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .card:hover {
+            border-color: var(--primary);
+            transform: translateY(-10px);
+            box-shadow: 0 15px 35px rgba(0, 230, 118, 0.15);
+        }
+        .card-icon {
+            font-size: 3.5rem;
+            display: block;
+            margin-bottom: 1.5rem;
+        }
+        .form-card {
+            background: var(--surface);
+            padding: 2.5rem;
+            border-radius: 20px;
+            border: var(--border);
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        label {
+            display: block;
+            margin: 15px 0 5px;
+            color: var(--text-mute);
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .pass-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .eye-toggle {
+            position: absolute;
+            right: 15px;
+            cursor: pointer;
+            color: var(--text-mute);
+            user-select: none;
+            font-size: 1.2rem;
+        }
+        input,
+        select {
+            width: 100%;
+            padding: 14px;
+            background: #000;
+            border: var(--border);
+            color: #fff;
+            border-radius: 10px;
+            font-size: 1rem;
+        }
+        input:focus {
+            border-color: var(--primary);
+            outline: none;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            background: var(--primary);
+            border: none;
+            border-radius: 10px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: 0.3s;
+            color: #000;
+            margin-top: 20px;
+            font-size: 1rem;
+        }
+        button:hover {
+            transform: scale(1.02);
+            filter: brightness(1.1);
+        }
+        .btn-sec {
+            background: transparent;
+            border: 1px solid #333;
+            color: #fff;
+        }
+        .strength-container {
+            height: 4px;
+            background: #222;
+            margin: 10px 0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        #strength-bar {
+            height: 100%;
+            width: 0%;
+            transition: 0.5s ease;
+        }
+        .weak { background: #ff5252; width: 33% !important; }
+        .medium { background: #ffc107; width: 66% !important; }
+        .strong { background: #00e676; width: 100% !important; }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+        }
+        .req-card {
+            background: var(--surface);
+            padding: 1.5rem;
+            border-radius: 15px;
+            border: var(--border);
+            animation: floatIn 0.4s ease forwards;
+            position: relative;
+        }
+        .badge {
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 900;
+            float: right;
+        }
+        .Pending { color: #ffc107; background: rgba(255, 193, 7, 0.1); }
+        .Approved { color: #00e676; background: rgba(0, 230, 118, 0.1); }
+        .Rejected { color: #ff5252; background: rgba(255, 82, 82, 0.1); }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="logo">SIGMA <span>UNIVERSITY</span></div>
+        <div id="user-display" style="font-size: 0.85rem; opacity: 0.8;"></div>
+    </nav>
+    <main>
+        <section id="s-home" class="active">
+            <h1 style="text-align:center; margin-top: 2rem; font-size: 2.5rem; letter-spacing: -1px;">E-Gate Pass System</h1>
+			<p style="text-align:center; color: var(--text-mute); margin-bottom: 1rem;">Official Campus Portal</p>
+            <div class="card-grid">
+                <div class="card" onclick="app.nav('login', 'student')">
+                    <span class="card-icon">🎓</span>
+                    <h3>Student Login</h3>
+                </div>
+                <div class="card" onclick="app.nav('login', 'faculty')">
+                    <span class="card-icon">🏢</span>
+                    <h3>Faculty Admin</h3>
+                </div>
+                <div class="card" onclick="app.nav('signup')">
+                    <span class="card-icon">🚀</span>
+                    <h3>New Register</h3>
+                </div>
+            </div>
+        </section>
+        <section id="s-signup">
+            <div class="form-card">
+                <h2>Registration</h2>
+                <form onsubmit="app.handleSignup(event)">
+                    <label>Full Name</label>
+                    <input type="text" id="r-name" required onkeypress="return /[a-zA-Z ]/i.test(event.key)">
+                    <label>Gmail Address</label>
+                    <input type="email" id="r-email" required>
+                    <label>Enrollment ID</label>
+                    <input type="text" id="r-eid" required>
+                    <label>Date of Birth</label>
+                    <input type="date" id="r-dob" required>
+                    <label for="r-gender">Gender</label>
+                    <select id="r-gender" required>
+                        <option value="" disabled selected>Select Gender</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                    </select>
+                    <label>Contact Number</label>
+                    <input type="tel" id="r-contact" required maxlength="10" onkeypress="return /[0-9]/i.test(event.key)">
+                    <label>Password</label>
+                    <div class="pass-wrapper">
+                        <input type="password" id="r-pass1" required oninput="app.checkPass(this.value)">
+                        <span class="eye-toggle" onclick="app.togglePass('r-pass1')">👁️</span>
+                    </div>
+                    <div class="strength-container">
+                        <div id="strength-bar"></div>
+                    </div>
+                    <button type="submit">Create Identity</button>
+                    <button type="button" class="btn-sec" onclick="app.nav('home')">Cancel</button>
+                </form>
+            </div>
+        </section>
+        <section id="s-login">
+            <div class="form-card">
+                <h2 id="l-title">Authentication</h2>
+                <form onsubmit="app.handleLogin(event)">
+                    <label id="l-label">Enrollment ID</label>
+                    <input type="text" id="l-uid" required>
+                    <label>Password</label>
+                    <div class="pass-wrapper">
+                        <input type="password" id="l-ups" required>
+                        <span class="eye-toggle" onclick="app.togglePass('l-ups')">👁️</span>
+                    </div>
+                    <button type="submit">Secure Access</button>
+                    <button type="button" class="btn-sec" onclick="app.nav('home')">Back</button>
+                </form>
+            </div>
+        </section>
+        <section id="s-dash-student">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2rem;">
+                <h2>Apply Pass</h2>
+                <button onclick="location.reload()" style="width:auto; padding:8px 18px; background:#222; font-size:0.8rem;">Logout</button>
+            </div>
+            <div class="form-card" style="max-width:100%; margin-bottom:2rem; border-color: var(--primary);">
+                <form onsubmit="app.submitReq(event)">
+                    <label>Reason for Leave</label>
+                    <input type="text" id="p-reason" required>
+                    <label>Attach Evidence (Optional)</label>
+                    <input type="file" id="p-file" accept="image/*,.pdf">
+                    <button type="submit">Submit to Office</button>
+                </form>
+            </div>
+            <h3>Application Status</h3>
+            <div id="student-list" class="grid" style="margin-top:1.5rem;"></div>
+        </section>
+        <section id="s-dash-faculty">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2rem;">
+                <h2>Approval Portal</h2>
+                <button onclick="location.reload()" style="width:auto; padding:8px 18px; background:#222; font-size:0.8rem;">Logout</button>
+            </div>
+            <div id="faculty-list" class="grid"></div>
+        </section>
+    </main>
+    <script>
+        const SB_URL = "https://fjjuilitwipennrvfpbo.supabase.co";
+        const SB_KEY = "sb_publishable_rkBzetMUcKvtey6H17YloQ_Esfcmjmw";
+        const sb = supabase.createClient(SB_URL, SB_KEY);
+        const app = {
+            user: null,
+            role: null,
+            nav: (section, role) => {
+                document.querySelectorAll("section").forEach(s => s.classList.remove("active"));
+                document.getElementById("s-" + section).classList.add("active");
+                if (role) {
+                    app.role = role;
+                    document.getElementById("l-title").innerText = role.toUpperCase() + " LOGIN";
+                    document.getElementById("l-label").innerText = role === 'student' ? "Enrollment ID" : "Faculty ID";
+                }
+            },
+            togglePass: (id) => {
+                const input = document.getElementById(id);
+                input.type = input.type === 'password' ? 'text' : 'password';
+            },
+            checkPass: (p) => {
+                const bar = document.getElementById("strength-bar");
+                if (!bar) return;
+                bar.className = "";
+                let score = 0;
+                if (p.length >= 6) score++;
+                if (/[A-Z]/.test(p)) score++;
+                if (/[0-9]/.test(p)) score++;
+                if (/[^A-Za-z0-9]/.test(p)) score++;
+                if (p.length === 0) return;
+                if (score <= 1) bar.classList.add("weak");
+                else if (score < 4) bar.classList.add("medium");
+                else bar.classList.add("strong");
+            },
+            handleSignup: async (e) => {
+                e.preventDefault();
+                const { error } = await sb.from("users").insert({
+                    enrollment_id: document.getElementById("r-eid").value.trim(),
+                    name: document.getElementById("r-name").value.trim(),
+                    email: document.getElementById("r-email").value.trim(),
+                    password: document.getElementById("r-pass1").value,
+                    dob: document.getElementById("r-dob").value,
+                    contact: document.getElementById("r-contact").value.trim(),
+                    gender: document.getElementById("r-gender").value,
+                    role: "student"
+                });
+                if (error) alert("Error: " + error.message);
+                else {
+                    alert("Registration Success");
+                    app.nav("login", "student");
+                }
+            },
+            handleLogin: async (e) => {
+                e.preventDefault();
+                const uid = document.getElementById("l-uid").value.trim();
+                const ups = document.getElementById("l-ups").value;
+                const { data, error } = await sb
+                    .from("users")
+                    .select("*")
+                    .eq("enrollment_id", uid)
+                    .eq("password", ups)
+                    .single();
+                if (error || !data) return alert("Invalid Credentials");
+                app.user = data;
+                app.role = data.role;
+                document.getElementById("user-display").innerText = "User: " + app.user.name;
+                if (app.role === "student") { app.nav("dash-student"); app.loadStudent(); }
+                else { app.nav("dash-faculty"); app.loadFaculty(); }
+            },
+            submitReq: async (e) => {
+                e.preventDefault();
+                const file = document.getElementById("p-file").files[0];
+                let url = null;
+                if (file) {
+                    const path = `${Date.now()}_${file.name}`;
+                    const { error: upErr } = await sb.storage.from("EVIDENCE").upload(path, file);
+                    if (upErr) return alert("File upload failed");
+                    url = sb.storage.from("EVIDENCE").getPublicUrl(path).data.publicUrl;
+                }
+                const { error } = await sb.from("requests").insert({
+                    enrollment_id: app.user.enrollment_id,
+                    student_name: app.user.name,
+                    reason: document.getElementById("p-reason").value,
+                    evidence_url: url,
+                    status: "Pending"
+                });
+                if (error) alert(error.message);
+                else { alert("Sent!"); e.target.reset(); app.loadStudent(); }
+            },
+            loadStudent: async () => {
+                const { data } = await sb.from("requests")
+                    .select("*")
+                    .eq("enrollment_id", app.user.enrollment_id)
+                    .order("created_at", { ascending: false });
+                document.getElementById("student-list").innerHTML = data.map(r => `
+                    <div class="req-card">
+                        <span class="badge ${r.status}">${r.status}</span>
+                        <p><strong>Reason:</strong> ${r.reason}</p>
+                        <small>📅 ${new Date(r.created_at).toLocaleDateString()}</small>
+                        ${r.evidence_url ? `<br><a href="${r.evidence_url}" target="_blank" style="color:var(--primary); text-decoration:none; font-size:0.8rem;">📎 View Evidence</a>` : ""}
+                    </div>
+                `).join("");
+            },
+            loadFaculty: async () => {
+                const { data } = await sb.from("requests").select("*").order("created_at", { ascending: false });
+                document.getElementById("faculty-list").innerHTML = data.map(r => `
+                    <div class="req-card">
+                        <span class="badge ${r.status}">${r.status}</span>
+                        <h4>${r.student_name}</h4>
+                        <p style="font-size:0.9rem; margin:5px 0;">${r.reason}</p>
+                        <small>📅 ${new Date(r.created_at).toLocaleString()}</small>
+                        ${r.evidence_url ? `<div style="margin:10px 0;"><a href="${r.evidence_url}" target="_blank" style="color:#007bff;">View File</a></div>` : ""}
+                        ${r.status === "Pending" ? `
+                        <div style="display:flex; gap:10px; margin-top:10px;">
+                            <button onclick="app.decide(${r.id},'Approved')" style="padding:8px; font-size:0.8rem;">Approve</button>
+                            <button onclick="app.decide(${r.id},'Rejected')" style="padding:8px; font-size:0.8rem; background:red;">Reject</button>
+                        </div>` : ""}
+                    </div>
+                `).join("");
+            },
+            decide: async (id, status) => {
+                await sb.from("requests").update({ status }).eq("id", id);
+                app.loadFaculty();
+            }
+        };
+    </script>
+</body>
+</html>
