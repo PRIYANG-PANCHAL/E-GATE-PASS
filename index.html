@@ -230,7 +230,8 @@
                 <h2>Registration</h2>
                 <form onsubmit="app.handleSignup(event)">
                     <label>Full Name</label>
-                    <input type="text" id="r-name" required onkeypress="return /[a-zA-Z ]/i.test(event.key)">
+                    <input type="text" id="r-name" required pattern="[A-Za-z ]{2,}"
+                    oninput="this.value = this.value.replace(/[^a-zA-Z ]/g, '')">
                     <label>Gmail Address</label>
                     <input type="email" id="r-email" required>
                     <label>Enrollment ID</label>
