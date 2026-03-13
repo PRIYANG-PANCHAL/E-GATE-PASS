@@ -124,8 +124,7 @@
             user-select: none;
             font-size: 1.2rem;
         }
-        input,
-        select {
+        input, select {
             width: 100%;
             padding: 14px;
             background: #000;
@@ -175,7 +174,6 @@
         .weak { background: #ff5252; width: 33% !important; }
         .medium { background: #ffc107; width: 66% !important; }
         .strong { background: #00e676; width: 100% !important; }
-
         .grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -209,7 +207,7 @@
     <main>
         <section id="s-home" class="active">
             <h1 style="text-align:center; margin-top: 2rem; font-size: 2.5rem; letter-spacing: -1px;">E-Gate Pass System</h1>
-			<p style="text-align:center; color: var(--text-mute); margin-bottom: 1rem;">Official Campus Portal</p>
+            <p style="text-align:center; color: var(--text-mute); margin-bottom: 1rem;">Official Campus Portal</p>
             <div class="card-grid">
                 <div class="card" onclick="app.nav('login', 'student')">
                     <span class="card-icon">🎓</span>
@@ -230,8 +228,7 @@
                 <h2>Registration</h2>
                 <form onsubmit="app.handleSignup(event)">
                     <label>Full Name</label>
-                    <input type="text" id="r-name" required pattern="[A-Za-z ]{2,}"
-                    oninput="this.value = this.value.replace(/[^a-zA-Z ]/g, '')">
+                    <input type="text" id="r-name" required pattern="[A-Za-z ]{2,}" oninput="this.value = this.value.replace(/[^a-zA-Z ]/g, '')">
                     <label>Gmail Address</label>
                     <input type="email" id="r-email" required>
                     <label>Enrollment ID</label>
@@ -391,39 +388,57 @@
                 else { alert("Sent!"); e.target.reset(); app.loadStudent(); }
             },
             loadStudent: async () => {
-                const { data } = await sb.from("requests")
+                const { data, error } = await sb
+                    .from("requests")
                     .select("*")
                     .eq("enrollment_id", app.user.enrollment_id)
                     .order("created_at", { ascending: false });
+                if (error) return;
                 document.getElementById("student-list").innerHTML = data.map(r => `
                     <div class="req-card">
                         <span class="badge ${r.status}">${r.status}</span>
                         <p><strong>Reason:</strong> ${r.reason}</p>
-                        <small>📅 ${new Date(r.created_at).toLocaleDateString()}</small>
-                        ${r.evidence_url ? `<br><a href="${r.evidence_url}" target="_blank" style="color:var(--primary); text-decoration:none; font-size:0.8rem;">📎 View Evidence</a>` : ""}
+                        <p style="font-weight:600;">${r.student_name}</p>
+                        <small>📅 ${new Date(r.created_at).toLocaleString('en-IN')}</small>
+                        ${r.approved_by ? `<p style="font-size:0.85rem;color:${r.status==="Approved" ? "#00e676" : "#ff5252"};">${r.status==="Approved" ? "Approved by" : "Rejected by"}: ${r.approved_by}</p>` : ""}
+                        ${r.status !== "Pending" && r.approved_at ? `<p style="font-size:0.75rem;color:#aaa;">⏱ Decision: ${new Date(r.approved_at).toLocaleString('en-IN',{timeZone:'Asia/Kolkata',year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true})}</p>` : ""}
+                        ${r.evidence_url ? `<br><a href="${r.evidence_url}" target="_blank" style="color:var(--primary);font-size:0.8rem;">📎 View Evidence</a>` : ""}
                     </div>
                 `).join("");
             },
             loadFaculty: async () => {
-                const { data } = await sb.from("requests").select("*").order("created_at", { ascending: false });
+                const { data, error } = await sb
+                    .from("requests")
+                    .select("*")
+                    .order("created_at", { ascending: false });
+                if (error) return;
                 document.getElementById("faculty-list").innerHTML = data.map(r => `
                     <div class="req-card">
                         <span class="badge ${r.status}">${r.status}</span>
                         <h4>${r.student_name}</h4>
-                        <p style="font-size:0.9rem; margin:5px 0;">${r.reason}</p>
-                        <small>📅 ${new Date(r.created_at).toLocaleString()}</small>
-                        ${r.evidence_url ? `<div style="margin:10px 0;"><a href="${r.evidence_url}" target="_blank" style="color:#007bff;">View File</a></div>` : ""}
-                        ${r.status === "Pending" ? `
-                        <div style="display:flex; gap:10px; margin-top:10px;">
-                            <button onclick="app.decide(${r.id},'Approved')" style="padding:8px; font-size:0.8rem;">Approve</button>
-                            <button onclick="app.decide(${r.id},'Rejected')" style="padding:8px; font-size:0.8rem; background:red;">Reject</button>
-                        </div>` : ""}
+                        <p style="font-size:0.9rem;margin:5px 0;">${r.reason}</p>
+                        <small>📅 ${new Date(r.created_at).toLocaleString('en-IN',{timeZone:'Asia/Kolkata',year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true})}</small>
+                        ${r.approved_by ? `<p style="font-size:0.85rem;color:${r.status==="Approved" ? "#00e676" : "#ff5252"};">${r.status==="Approved" ? "Approved by" : "Rejected by"}: ${r.approved_by}</p>` : ""}
+                        ${r.status !== "Pending" && r.approved_at ? `<p style="font-size:0.75rem;color:#aaa;">⏱ Decision: ${new Date(r.approved_at).toLocaleString('en-IN',{timeZone:'Asia/Kolkata',year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true})}</p>` : ""}
+                        ${r.evidence_url ? `<div style="margin:10px 0;"><a href="${r.evidence_url}" target="_blank" style="color:#007bff;">📎 View File</a></div>` : ""}
+                        ${r.status==="Pending" ? `<div style="display:flex;gap:10px;margin-top:10px;"><button onclick="app.decide(${r.id},'Approved')" style="padding:8px;font-size:0.8rem;">Approve</button><button onclick="app.decide(${r.id},'Rejected')" style="padding:8px;font-size:0.8rem;background:red;color:white;">Reject</button></div>` : ""}
                     </div>
                 `).join("");
             },
             decide: async (id, status) => {
-                await sb.from("requests").update({ status }).eq("id", id);
-                app.loadFaculty();
+                const { error } = await sb
+                    .from("requests")
+                    .update({
+                        status: status,
+                        approved_by: app.user.name,
+                        approved_at: new Date().toISOString()
+                    })
+                    .eq("id", id);
+                if (error) alert("Action failed: " + error.message);
+                else {
+                    app.loadFaculty();
+                    app.loadStudent();
+                }
             }
         };
     </script>
