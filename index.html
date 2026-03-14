@@ -211,7 +211,7 @@
             <div class="card-grid">
                 <div class="card" onclick="app.nav('login', 'student')">
                     <span class="card-icon">🎓</span>
-                    <h3>Student Login</h3>
+                    <h3>Login</h3>
                 </div>
                 <div class="card" onclick="app.nav('login', 'faculty')">
                     <span class="card-icon">🏢</span>
@@ -234,7 +234,7 @@
                     <label>Enrollment ID</label>
                     <input type="text" id="r-eid" required>
                     <label>Date of Birth</label>
-                    <input type="date" id="r-dob" required>
+                    <input type="date" id="r-dob" max="9999-12-31" oninput="if(this.value.split('-')[0].length > 4) this.value = ''" required>
                     <label for="r-gender">Gender</label>
                     <select id="r-gender" required>
                         <option value="" disabled selected>Select Gender</option>
